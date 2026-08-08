@@ -1,0 +1,71 @@
+---
+// Живая погода для Кубинки (55.588, 36.706) через бесплатный Open-Meteo API — без ключа, CORS разрешён.
+---
+<div id="weather-widget" style="background:#1a1a1d;border:1px solid #26262a;border-radius:16px;padding:26px">
+  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px">
+    <div class="oswald" style="font-weight:600;font-size:15px;color:#9b9a97;letter-spacing:.3px">ПОГОДА · КУБИНКА</div>
+    <div id="w-today" style="font-size:12px;color:#6f6e6a"></div>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+    <div id="w-icon" style="font-size:52px">⏳</div>
+    <div>
+      <div id="w-temp" class="oswald" style="font-size:44px;font-weight:700;line-height:1">—</div>
+      <div id="w-label" style="color:#b9b7b3;font-size:14px">Загрузка…</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:14px;font-size:13px;color:#9b9a97;margin-bottom:18px;flex-wrap:wrap">
+    <span id="w-wind">Ветер — м/с</span>
+    <span id="w-humidity">Влажность —%</span>
+  </div>
+  <div style="height:1px;background:#26262a;margin-bottom:16px"></div>
+  <div id="w-week" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px"></div>
+</div>
+
+<script>
+  const WMO_ICON: Record<number, string> = {
+    0: '☀️', 1: '🌤️', 2: '⛅', 3: '☁️', 45: '🌫️', 48: '🌫️',
+    51: '🌦️', 53: '🌦️', 55: '🌦️', 61: '🌧️', 63: '🌧️', 65: '🌧️',
+    71: '🌨️', 73: '🌨️', 75: '🌨️', 80: '🌦️', 81: '🌧️', 82: '🌧️',
+    95: '⛈️', 96: '⛈️', 99: '⛈️',
+  };
+  const WMO_LABEL: Record<number, string> = {
+    0: 'Ясно', 1: 'Малооблачно', 2: 'Переменная облачность', 3: 'Облачно',
+    45: 'Туман', 48: 'Туман', 51: 'Морось', 53: 'Морось', 55: 'Морось',
+    61: 'Дождь', 63: 'Дождь', 65: 'Сильный дождь', 71: 'Снег', 73: 'Снег', 75: 'Снег',
+    80: 'Ливень', 81: 'Ливень', 82: 'Сильный ливень', 95: 'Гроза', 96: 'Гроза', 99: 'Гроза',
+  };
+  const DOWS = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
+
+  async function loadWeather() {
+    try {
+      const url = 'https://api.open-meteo.com/v1/forecast?latitude=55.588&longitude=36.706&current=temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=Europe%2FMoscow&forecast_days=7';
+      const res = await fetch(url);
+      const data = await res.json();
+      const c = data.current;
+      document.getElementById('w-today')!.textContent = new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+      document.getElementById('w-icon')!.textContent = WMO_ICON[c.weather_code] ?? '☀️';
+      document.getElementById('w-temp')!.textContent = Math.round(c.temperature_2m) + '°';
+      document.getElementById('w-label')!.textContent = `${WMO_LABEL[c.weather_code] ?? ''} · ощущается как ${Math.round(c.apparent_temperature)}°`;
+      document.getElementById('w-wind')!.textContent = `Ветер ${Math.round(c.wind_speed_10m)} м/с`;
+      document.getElementById('w-humidity')!.textContent = `Влажность ${c.relative_humidity_2m}%`;
+
+      const week = document.getElementById('w-week')!;
+      week.innerHTML = '';
+      data.daily.time.forEach((dateStr: string, i: number) => {
+        const d = new Date(dateStr);
+        const isToday = i === 0;
+        const cell = document.createElement('div');
+        cell.style.cssText = `text-align:center;padding:8px 2px;border-radius:8px;background:${isToday ? 'rgba(255,106,26,0.12)' : 'transparent'}`;
+        cell.innerHTML = `
+          <div style="font-size:11.5px;color:#9b9a97;margin-bottom:6px;text-transform:capitalize">${isToday ? 'сегодня' : DOWS[d.getDay()]}</div>
+          <div style="font-size:20px;margin-bottom:4px">${WMO_ICON[data.daily.weather_code[i]] ?? '☀️'}</div>
+          <div style="font-size:12.5px;font-weight:700">${Math.round(data.daily.temperature_2m_max[i])}°</div>
+          <div style="font-size:11px;color:#75746f">${Math.round(data.daily.temperature_2m_min[i])}°</div>`;
+        week.appendChild(cell);
+      });
+    } catch (e) {
+      document.getElementById('w-label')!.textContent = 'Не удалось загрузить погоду';
+    }
+  }
+  loadWeather();
+</script>
