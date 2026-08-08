@@ -18,3 +18,5 @@ npm run build   # → dist/
 
 ## Контент
 Услуги, цены, бренды, отзывы редактируются в `src/data/site.ts`. Фото галереи и карту — замените плейсхолдеры в `Gallery.astro` / `Contact.astro`.
+
+
