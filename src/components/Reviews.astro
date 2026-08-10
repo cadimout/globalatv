@@ -6,9 +6,9 @@ import { reviews } from '../data/site';
   <h2 style="font-size:30px;font-weight:700;margin:0 0 28px">Реальные отзывы из открытых источников</h2>
   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:18px">
     {reviews.map((r) => (
-      <div style="background:#1a1a1d;border:1px solid #26262a;border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:14px">
+      <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:14px">
         <div style="color:var(--accent);font-size:14px">★★★★★</div>
-        <div style="font-size:14.5px;line-height:1.6;color:#cfcdc9;flex:1">{r.text}</div>
+        <div style="font-size:14.5px;line-height:1.6;color:var(--review-text);flex:1">{r.text}</div>
         <div style="font-weight:700;font-size:14px">{r.name}</div>
       </div>
     ))}

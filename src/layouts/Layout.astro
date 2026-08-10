@@ -12,16 +12,68 @@ const { title, description } = Astro.props;
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <style>
-    :root { --accent: #ff6a1a; }
+    :root {
+      --accent: #ff6a1a;
+      --bg: #141416; --topbar-bg: #0d0d0e; --header-bg: rgba(20,20,22,.92);
+      --card-bg: #1a1a1d; --card-border: #26262a; --badge-bg: #1f1f22; --icon-bg: #232326;
+      --text: #eceae6; --text-muted: #b9b7b3; --text-dim: #9b9a97; --text-footer: #75746f;
+      --review-text: #cfcdc9; --secondary-border: #3a3a3e;
+      --promo-grad: linear-gradient(120deg,#1f1a15,#1a1a1d); --promo-border: #3a2e1e;
+      --today-highlight: rgba(255,106,26,0.14);
+    }
+    [data-theme="light"] {
+      --bg: #f7f5f2; --topbar-bg: #eeece7; --header-bg: rgba(247,245,242,.92);
+      --card-bg: #ffffff; --card-border: #e5e2dc; --badge-bg: #fff1e6; --icon-bg: #f2efe9;
+      --text: #1c1c1c; --text-muted: #514f4a; --text-dim: #6b6a66; --text-footer: #8a8883;
+      --review-text: #3a3936; --secondary-border: #d7d4cd;
+      --promo-grad: linear-gradient(120deg,#fff1e6,#ffffff); --promo-border: #f0d9c2;
+    }
     * { box-sizing: border-box; }
-    body { margin: 0; background: #141416; color: #eceae6; font-family: 'Manrope', sans-serif; }
+    body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Manrope', sans-serif; transition: background .3s, color .3s; }
     a { color: var(--accent); text-decoration: none; }
     a:hover { color: #ffb27a; }
     h1, h2, .oswald { font-family: 'Oswald', sans-serif; }
     img { max-width: 100%; display: block; }
   </style>
+  <script is:inline>
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('gatv-theme'); } catch (e) {}
+      var theme = saved;
+      if (theme !== 'light' && theme !== 'dark') {
+        var h = new Date().getHours();
+        theme = (h >= 7 && h < 20) ? 'light' : 'dark';
+      }
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
 </head>
 <body>
   <slot />
+  <script>
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      document.querySelectorAll('.theme-icon').forEach(function (el) {
+        el.textContent = theme === 'light' ? '☀️' : '🌙';
+      });
+    }
+    document.querySelectorAll('.theme-toggle').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var current = document.documentElement.getAttribute('data-theme');
+        var next = current === 'light' ? 'dark' : 'light';
+        try { localStorage.setItem('gatv-theme', next); } catch (e) {}
+        applyTheme(next);
+      });
+    });
+    applyTheme(document.documentElement.getAttribute('data-theme'));
+    // Re-check auto theme every 5 min if user never manually chose
+    setInterval(function () {
+      var saved = null;
+      try { saved = localStorage.getItem('gatv-theme'); } catch (e) {}
+      if (saved === 'light' || saved === 'dark') return;
+      var h = new Date().getHours();
+      applyTheme((h >= 7 && h < 20) ? 'light' : 'dark');
+    }, 5 * 60 * 1000);
+  </script>
 </body>
 </html>

@@ -6,7 +6,7 @@ import { galleryIds } from '../data/site';
   <h2 style="font-size:30px;font-weight:700;margin:0 0 28px">Наши работы</h2>
   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
     {galleryIds.map((id) => (
-      <div style="aspect-ratio:1;border-radius:12px;overflow:hidden;background:#1a1a1d;border:1px solid #26262a;display:flex;align-items:center;justify-content:center;color:#5c5b58;font-size:13px">
+      <div style="aspect-ratio:1;border-radius:12px;overflow:hidden;background:var(--card-bg);border:1px solid var(--card-border);display:flex;align-items:center;justify-content:center;color:var(--text-footer);font-size:13px">
         {/* замените на <img src={`/images/${id}.jpg`} alt="Фото работы" /> */}
         Фото работы
       </div>

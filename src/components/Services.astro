@@ -9,10 +9,10 @@ import { icons } from './icons';
   </div>
   <div id="services" style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px">
     {services.map((s) => (
-      <div style="background:#1a1a1d;border:1px solid #26262a;border-radius:14px;padding:26px">
-        <div style="width:46px;height:46px;border-radius:10px;background:#232326;display:flex;align-items:center;justify-content:center;margin-bottom:16px;color:var(--accent)" set:html={icons[s.icon]} />
+      <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:14px;padding:26px">
+        <div style="width:46px;height:46px;border-radius:10px;background:var(--icon-bg);display:flex;align-items:center;justify-content:center;margin-bottom:16px;color:var(--accent)" set:html={icons[s.icon]} />
         <div class="oswald" style="font-weight:600;font-size:18px;margin-bottom:8px">{s.title}</div>
-        <div style="color:#9b9a97;font-size:14.5px;line-height:1.55">{s.desc}</div>
+        <div style="color:var(--text-dim);font-size:14.5px;line-height:1.55">{s.desc}</div>
       </div>
     ))}
   </div>
