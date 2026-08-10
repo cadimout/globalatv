@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="background:{{theme.cardBg}};border:1px solid {{theme.cardBorder}};border-radius:16px;padding:26px;font-family:'Manrope',sans-serif;color:{{theme.text}}">
+  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px">
+    <div style="font-family:Oswald;font-weight:600;font-size:15px;color:{{theme.textDim}};letter-spacing:.3px">ПОГОДА · КУБИНКА</div>
+    <div style="font-size:12px;color:{{theme.textFooter}}">{{today}}</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+    <div style="font-size:52px" dangerouslySetInnerHTML="{{current.iconHtml}}"></div>
+    <div>
+      <div style="font-family:Oswald;font-size:44px;font-weight:700;line-height:1">{{current.temp}}°</div>
+      <div style="color:{{theme.textMuted}};font-size:14px">{{current.label}} · ощущается как {{current.feels}}°</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:14px;font-size:13px;color:{{theme.textDim}};margin-bottom:18px;flex-wrap:wrap">
+    <span>Ветер {{current.wind}} м/с</span>
+    <span>Влажность {{current.humidity}}%</span>
+  </div>
+  <div style="height:1px;background:{{theme.cardBorder}};margin-bottom:16px"></div>
+  <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px">
+    <sc-for list="{{week}}" as="d" hint-placeholder-count="7">
+      <div style="text-align:center;padding:8px 2px;border-radius:8px;background:{{d.isToday}}">
+        <div style="font-size:11.5px;color:{{theme.textDim}};margin-bottom:6px;text-transform:capitalize">{{d.dow}}</div>
+        <div style="font-size:20px;margin-bottom:4px" dangerouslySetInnerHTML="{{d.iconHtml}}"></div>
+        <div style="font-size:12.5px;font-weight:700">{{d.max}}°</div>
+        <div style="font-size:11px;color:{{theme.textFooter}}">{{d.min}}°</div>
+      </div>
+    </sc-for>
+  </div>
+  <div style="font-size:11px;color:{{theme.textFooter}};margin-top:14px;text-align:right">Подключите провайдера погоды (напр. OpenWeather) для live-данных</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const DARK = { cardBg:'#1a1a1d', cardBorder:'#26262a', text:'#eceae6', textMuted:'#b9b7b3', textDim:'#9b9a97', textFooter:'#75746f' };
+const LIGHT = { cardBg:'#ffffff', cardBorder:'#e5e2dc', text:'#1c1c1c', textMuted:'#514f4a', textDim:'#6b6a66', textFooter:'#8a8883' };
+class Component extends DCLogic {
+  renderVals() {
+    const theme = this.props.theme ?? DARK;
+    const sunny = '☀️', cloud = '⛅', rain = '🌦️', over = '☁️';
+    const dows = ['вс','пн','вт','ср','чт','пт','сб'];
+    const now = new Date();
+    const seq = [sunny, cloud, cloud, over, rain, cloud, sunny];
+    const baseMax = [24,23,22,21,20,22,25];
+    const baseMin = [15,14,15,13,12,14,16];
+    const week = seq.map((ic, i) => {
+      const d = new Date(now); d.setDate(now.getDate() + i);
+      return {
+        dow: i === 0 ? 'сегодня' : dows[d.getDay()],
+        iconHtml: {__html: ic},
+        max: baseMax[i],
+        min: baseMin[i],
+        isToday: i === 0 ? 'rgba(255,106,26,0.14)' : 'transparent',
+      };
+    });
+    return {
+      theme,
+      today: now.toLocaleDateString('ru-RU', {day:'numeric', month:'long'}),
+      current: { iconHtml:{__html:sunny}, temp: baseMax[0], feels: baseMax[0]-2, label:'Малооблачно', wind: 3, humidity: 54 },
+      week,
+    };
+  }
+}
+</script>
+</body>
+</html>

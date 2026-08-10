@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="position:fixed;bottom:24px;right:24px;z-index:100;font-family:'Manrope',sans-serif">
+  <sc-if value="{{open}}" hint-placeholder-val="{{false}}">
+    <div style="width:340px;height:440px;background:{{theme.cardBg}};border:1px solid {{theme.cardBorder}};border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,.35);display:flex;flex-direction:column;overflow:hidden;margin-bottom:14px">
+      <div style="background:#ff6a1a;padding:16px 18px;display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-family:Oswald;font-weight:700;color:#141416;font-size:15px">AI-помощник</div>
+          <div style="font-size:11.5px;color:#3a2210">Бесплатная консультация</div>
+        </div>
+        <div onClick="{{toggle}}" style="cursor:pointer;color:#141416;font-size:20px;font-weight:700;line-height:1">×</div>
+      </div>
+      <div ref="{{scrollRef}}" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px">
+        <sc-for list="{{messages}}" as="m" hint-placeholder-count="1">
+          <div style="max-width:85%;align-self:{{m.align}};background:{{m.bg}};color:{{m.color}};padding:10px 14px;border-radius:12px;font-size:13.5px;line-height:1.5;white-space:pre-wrap">{{m.text}}</div>
+        </sc-for>
+        <sc-if value="{{loading}}" hint-placeholder-val="{{false}}">
+          <div style="align-self:flex-start;color:{{theme.textFooter}};font-size:13px">печатает…</div>
+        </sc-if>
+      </div>
+      <div style="padding:12px;border-top:1px solid {{theme.cardBorder}};display:flex;gap:8px">
+        <input value="{{draft}}" onChange="{{onDraftChange}}" onKeyDown="{{onKeyDown}}" placeholder="Опишите неисправность…" style="flex:1;background:{{theme.iconBg}};border:1px solid {{theme.cardBorder}};border-radius:8px;padding:10px 12px;color:{{theme.text}};font-size:13.5px;outline:none"></input>
+        <div onClick="{{send}}" style="background:#ff6a1a;color:#141416;width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:700">→</div>
+      </div>
+    </div>
+  </sc-if>
+  <div onClick="{{toggle}}" style="width:58px;height:58px;border-radius:29px;background:#ff6a1a;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 10px 30px rgba(255,106,26,.4);font-size:26px">🛠️</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const DARK = { cardBg:'#1a1a1d', cardBorder:'#26262a', text:'#eceae6', iconBg:'#232326', textFooter:'#75746f' };
+const LIGHT = { cardBg:'#ffffff', cardBorder:'#e5e2dc', text:'#1c1c1c', iconBg:'#f2efe9', textFooter:'#8a8883' };
+
+class Component extends DCLogic {
+  state = {
+    open: false,
+    draft: '',
+    loading: false,
+    messages: [
+      { text: 'Здравствуйте! Я бесплатный AI-помощник Global-ATV. Опишите проблему с мотоциклом, квадроциклом или снегоходом — подскажу возможную причину и что делать дальше. Точную диагностику и ремонт сделают наши мастера в сервисе.', align: 'flex-start', bg: '__DARK_ICON__', color: '__DARK_TEXT__' },
+    ],
+  };
+  scrollRef = React.createRef();
+
+  componentDidUpdate() {
+    if (this.scrollRef.current) this.scrollRef.current.scrollTop = this.scrollRef.current.scrollHeight;
+  }
+
+  toggle = () => this.setState(s => ({ open: !s.open }));
+  onDraftChange = (e) => this.setState({ draft: e.target.value });
+  onKeyDown = (e) => { if (e.key === 'Enter') this.send(); };
+
+  send = async () => {
+    const theme = this.props.theme ?? DARK;
+    const text = this.state.draft.trim();
+    if (!text || this.state.loading) return;
+    const userMsg = { text, align: 'flex-end', bg: '#ff6a1a', color: '#141416' };
+    this.setState(s => ({ messages: [...s.messages, userMsg], draft: '', loading: true }));
+    try {
+      const reply = await window.claude.complete({
+        system: 'Ты бесплатный AI-помощник мотосервиса Global-ATV (Кубинка, ремонт и ТО мотоциклов, квадроциклов, снегоходов). Отвечай дружелюбно и просто, короткими абзацами на русском. Дай вероятные причины неисправности и простые советы, но всегда заканчивай рекомендацией привезти технику в сервис для точной диагностики и ремонта. Не придумывай точные цены — направляй к разделу цен на сайте или к мастеру.',
+        messages: [{ role: 'user', content: text }],
+      });
+      this.setState(s => ({ messages: [...s.messages, { text: reply, align: 'flex-start', bg: theme.iconBg, color: theme.text }], loading: false }));
+    } catch (e) {
+      this.setState(s => ({ messages: [...s.messages, { text: 'Не получилось получить ответ. Позвоните нам: +7 (926) 388-28-90.', align: 'flex-start', bg: theme.iconBg, color: theme.text }], loading: false }));
+    }
+  };
+
+  renderVals() {
+    const theme = this.props.theme ?? DARK;
+    const messages = this.state.messages.map(m => (
+      m.bg === '__DARK_ICON__' ? { ...m, bg: theme.iconBg, color: theme.text } : m
+    ));
+    return {
+      theme,
+      open: this.state.open,
+      draft: this.state.draft,
+      loading: this.state.loading,
+      messages,
+      scrollRef: this.scrollRef,
+      toggle: this.toggle,
+      onDraftChange: this.onDraftChange,
+      onKeyDown: this.onKeyDown,
+      send: this.send,
+    };
+  }
+}
+</script>
+</body>
+</html>
